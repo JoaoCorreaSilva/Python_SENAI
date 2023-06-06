@@ -2,7 +2,10 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from time import sleep
 from sqlip import conn, cursor
+import pandas as pd
 
+modelos = []
+valores =[]
 
 class Web:
     def __init__(self):
@@ -23,12 +26,20 @@ class Web:
         for j in range(1, 5):
             print(self.driver.find_element(By.XPATH, self.map["modelo"].replace('%cural%', f'{j}')).text, end='\t')
             modelo = self.driver.find_element(By.XPATH, self.map["modelo"].replace('%cural%', f'{j}')).text
+            modelos.append(modelo)
             k += 1
             print(self.driver.find_element(By.XPATH, self.map["preco"].replace('%pamonha%', f'{k}')).text)
             preco = self.driver.find_element(By.XPATH, self.map["preco"].replace('%pamonha%', f'{k}'))
-
+            valores.append(preco)
             inserir = f"""INSERT INTO celulares(marca, valor)
                 values
                 ('{modelo}', '{preco}');"""
             cursor.execute(inserir)
             conn.commit()
+
+        data = {'Marca': modelos, 'Preço': valores}
+        df = pd.DataFrame(data)
+
+        df.to_excel('celulares.xlsx', index=False)
+
+        self.driver.quit()
